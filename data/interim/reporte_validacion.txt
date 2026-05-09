@@ -1,0 +1,22 @@
+Información Dataset:
+Total de columnas: 6
+Total de filas   : 8
+
+Valores faltantes por columna
+    nombre: sin faltantes
+    nota1: 1 faltante(s)
+    nota2: 1 faltante(s)
+    nota3: 1 faltante(s)
+    asistencia: 2 faltante(s)
+
+Entradas de estudiantes con al menos un valor faltante
+
+  - Luis
+  - Carla
+  - Diego
+  - Rodrigo
+  - Matias
+
+Valores fuera de rango
+
+  No se detectaron valores fuera de rango

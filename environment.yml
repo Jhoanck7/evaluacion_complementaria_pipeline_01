@@ -1,4 +1,4 @@
-name: tarea1
+name: eval-comple-01
 channels:
   - conda-forge
 dependencies:
@@ -7,10 +7,8 @@ dependencies:
   - typer
   - loguru
   - tqdm
-  - black
-  - flake8
-  - isort
+  - ruff
+  - polars
   - pip:
     - python-dotenv
     - mkdocs
-    - -e .

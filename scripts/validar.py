@@ -1,13 +1,5 @@
-"""validar.py
-Lee data/raw/estudiantes.csv. Produce dos archivos:
-• data/interim/validado.csv: el dataset completo con una columna adicional tiene_faltantes
-(True/False) que indica si esa fila tiene algún valor nulo. No elimina ninguna fila.
-• data/interim/reporte_validacion.txt: un reporte en texto plano que detalla cuántos
-valores faltantes hay por columna, qué filas los tienen y cualquier valor fuera del rango
-esperado
-"""
-
 import polars as pl
+import os
 
 # Rutas de entrada y salida
 INPUT_PATH: str = "data/raw/estudiantes.csv"
@@ -24,6 +16,7 @@ ASISTENCIA_MAX: float = 100.0
 
 # Columnas que corresponden a notas
 COLUMNAS_NOTAS: list[str] = ["nota1", "nota2", "nota3"]
+
 
 
 def leer_dataset(ruta: str) -> pl.DataFrame:
@@ -101,6 +94,10 @@ def detectar_valores_fuera_de_rango(df: pl.DataFrame) -> list[str]:
 
     return datos_invalidos
 
+"""""
+Reporte que detalla cuántos valores faltantes hay por columna, qué filas los tienen y cualquier valor fuera del rango
+esperado.
+"""
 def generar_reporte(
         df: pl.DataFrame,
         conteo_faltantes: dict[str, int],
@@ -108,13 +105,10 @@ def generar_reporte(
         datos_invalidos: list[str],
         ruta_salida: str,
 ) -> None:
-    """
-    Crea un archivo de texto con el resumen de la validación.
-    """
-    # Usaremos esta lista para ir guardando cada renglón del reporte
+    # Cada linea del reporte se añade a la lista
     lineas_reporte = []
 
-    # 1. Información básica del archivo
+    # El reporte muestra información basica de la base de datos
     numero_filas = df.shape[0]
     numero_columnas = df.shape[1]
 
@@ -123,11 +117,10 @@ def generar_reporte(
     lineas_reporte.append(f"Total de filas   : {numero_filas}")
     lineas_reporte.append("")  # Línea en blanco para separar
 
-    # 2. Sección de valores faltantes
     lineas_reporte.append("Valores faltantes por columna")
-
+    # En el reporte se muestra la cantidad de faltantes por cada columna
     for columna in conteo_faltantes:
-        #No se debe mostrar la columna "tiene_faltantes"
+        # No se debe mostrar la columna "tiene_faltantes"
         if columna == "tiene_faltantes":
             continue
 
@@ -142,22 +135,40 @@ def generar_reporte(
 
     lineas_reporte.append("")
 
-    # 3. Sección de nombres con datos nulos
+    # En el reporte se muestra el nombre de estudiantes con datos faltantes
     lineas_reporte.append("Entradas de estudiantes con al menos un valor faltante")
     lineas_reporte.append("")
 
-    if filas_con_faltantes:
-        for nombre in filas_con_faltantes:
-            lineas_reporte.append(f"  - {nombre}")
-    else:
-        lineas_reporte.append("  (Ninguna fila tiene valores faltantes)")
+    columnas_a_revisar = ["nota1", "nota2", "nota3", "asistencia"]
 
+    # Se filtran solo las filas que tienen True en la columna tiene_faltantes
+    estudiantes_con_nulos = df.filter(pl.col("tiene_faltantes"))
+
+    # Variable para controlar si el reporte debe mostrar estudiantes o el mensaje de "ninguno"
+    encontro_nulos = False
+
+    # Se recorre la tabla filtrada fila por fila convirtiéndolas en diccionarios para poder añadir al reporte
+    for fila in estudiantes_con_nulos.iter_rows(named=True):
+        # Si entramos al bucle, significa que al menos existe un estudiante con faltantes
+        encontro_nulos = True
+        nombre = fila["nombre"]
+
+        # Se revisa cada una de las columnas de notas y asistencia para este estudiante
+        for col in columnas_a_revisar:
+            # Si el valor en esa columna es None, se añade el detalle al reporte
+            if fila[col] is None:
+                lineas_reporte.append(f"  - {nombre}: {col}")
+
+    # Si la variable sigue en False es porque no se encontró ningun valor nulo
+    if not encontro_nulos:
+        lineas_reporte.append("  (Ninguna entrada tiene valores faltantes)")
+
+
+    # En reporte muestra si existen valores fuera del rango establecido
+    lineas_reporte.append("\n Valores fuera de rango")
     lineas_reporte.append("")
 
-    # 4. Sección de errores de notas o asistencia
-    lineas_reporte.append("Valores fuera de rango")
-    lineas_reporte.append("")
-
+    # Si anteriormente se encontró algún dato invalido, se mostrará este mensaje de error
     if datos_invalidos:
         for mensaje_error in datos_invalidos:
             lineas_reporte.append(mensaje_error)
@@ -166,49 +177,47 @@ def generar_reporte(
 
     lineas_reporte.append("")
 
-    # 5. Guarda todo el texto acumulado en el archivo
-    # Unimos todas las líneas con un salto de línea
-    texto_final = "\n".join(lineas_reporte)
-
+    # Se unen todas las lineas del reporte
+    reporte_validacion = "\n".join(lineas_reporte)
+    #Se escribe el reporte final en el disco duro
     with open(ruta_salida, mode="w", encoding="utf-8") as archivo_texto:
-        archivo_texto.write(texto_final)
+        archivo_texto.write(reporte_validacion)
 
     print(f"Reporte de validación guardado en: {ruta_salida}")
 
+# Guarda la base de datos validada en el disco duro
 def guardar_csv_validado(df: pl.DataFrame, ruta_salida: str) -> None:
-    """Guarda el DataFrame validado (con la columna tiene_faltantes) en disco."""
     df.write_csv(ruta_salida)
     print(f"CSV validado guardado en: {ruta_salida}")
 
-
+# Ejecuta todas las funciones del archivo
 def main() -> None:
-    """Función principal que ejecuta el flujo completo de validación."""
-    import os
 
-    # Crear directorio de salida si no existe
+    # Crea directorio de salida si no existe
     os.makedirs("data/interim", exist_ok=True)
 
-    print("Leyendo dataset de entrada...")
+    # Lee la base de datos de entrada
     df = leer_dataset(INPUT_PATH)
 
-    print("Agregando columna de valores faltantes...")
+    print("Agregando columna de valores faltantes")
     df = agregar_columna_faltantes(df)
 
-    print("Analizando calidad de los datos...")
+    print("Analizando si existen datos faltantes y/o fuera de rango")
+    # Ejecuta todas las funciones para detectar valores faltantes
     conteo_faltantes = contar_faltantes_por_columna(df)
     filas_con_faltantes = obtener_filas_con_faltantes(df)
-    anomalias = detectar_valores_fuera_de_rango(df)
+    datos_fuera_rango = detectar_valores_fuera_de_rango(df)
 
-    print("Guardando CSV validado...")
+    print("Guardando CSV validado")
     guardar_csv_validado(df, OUTPUT_CSV)
 
-    print("Generando reporte de validación...")
+    print("Generando reporte de validación")
     generar_reporte(
-        df, conteo_faltantes, filas_con_faltantes, anomalias, OUTPUT_REPORTE
+        df, conteo_faltantes, filas_con_faltantes, datos_fuera_rango, OUTPUT_REPORTE
     )
 
-    print("Script validar.py finalizado correctamente.")
+    print("validar.py se ejecutó correctamente")
 
-
+# El codigo se ejecuta solo si es corrido directamente
 if __name__ == "__main__":
     main()

@@ -137,7 +137,7 @@ def main() -> None:
     print("Generando Reporte Final")
     reporte_final = construir_reporte(df_transformado, resumen)
 
-    # Guarda reporti_final.md en el disco
+    # Guarda reporte_final.md en el disco
     with open(OUTPUT_REPORTE_MD, mode="w", encoding="utf-8") as f:
         f.write(reporte_final)
 

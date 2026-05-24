@@ -29,7 +29,7 @@ def imputar_notas_con_mediana(df: pl.DataFrame) -> pl.DataFrame:
         instruccion_columna = pl.col(columna).fill_null(mediana).alias(columna)
         instrucciones_imputacion.append(instruccion_columna)
 
-    # Se aplican todas las instrucciones almacenadas al dataset original
+    # Se aplican todas las instrucciones almacenadas al dataset
     df_imputado = df.with_columns(instrucciones_imputacion)
     # Retorna el nuevo dataset con los Null reemplazados
     return df_imputado

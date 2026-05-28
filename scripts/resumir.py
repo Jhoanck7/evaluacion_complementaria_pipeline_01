@@ -1,10 +1,11 @@
-"""Módulo para generar el resumen estadístico del curso.
-"""
+"""Módulo para generar el resumen estadístico del curso."""
+
 import polars as pl
 
 # Ruta de los archivos
 INPUT_PATH: str = "data/processed/transformado.csv"
 OUTPUT_PATH: str = "data/processed/resumen.txt"
+
 
 def generar_estadisticas(df: pl.DataFrame) -> str:
     """Calcula las métricas requeridas utilizando expresiones de Polars.
@@ -12,20 +13,19 @@ def generar_estadisticas(df: pl.DataFrame) -> str:
     Retorna un string formateado listo para ser escrito en el archivo final.
     """
     # 1. Obtener métricas simples usando expresiones básicas
-    total_estudiantes =  df.height
+    total_estudiantes = df.height
     promedio_general = df["promedio"].mean()
     nota_minima = df["promedio"].min()
     nota_maxima = df["promedio"].max()
     promedio_asistencia = df["asistencia"].mean()
 
     # 2. Calcular porcentaje de aprobados
-    cantidad_aprobados = df.filter(pl.col("aprobado") == True).height
+    cantidad_aprobados = df.filter(pl.col("aprobado")).height
     porcentaje_aprobados = (cantidad_aprobados / total_estudiantes) * 100
     # 3. Contar categorías (Destacado / Aprobado / Reprobado)
     conteo_destacados = df.filter(pl.col("categoria") == "Destacado").height
     conteo_aprobados = df.filter(pl.col("categoria") == "Aprobado").height
     conteo_reprobados = df.filter(pl.col("categoria") == "Reprobado").height
-
 
     # 4. Construir el reporte en texto plano (f-string)
     reporte = (
@@ -46,8 +46,6 @@ def generar_estadisticas(df: pl.DataFrame) -> str:
 
 def main() -> None:
     """Función principal del script."""
-    
-
 
     # Lectura y recolección
     df: pl.DataFrame = pl.scan_csv(INPUT_PATH).collect()
@@ -60,5 +58,5 @@ def main() -> None:
         f.write(contenido_reporte)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()

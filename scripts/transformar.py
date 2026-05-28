@@ -1,5 +1,5 @@
-"""Módulo en el cual se agregan atributos, tales como el promedio, los estudiantes aprobados
-y las categorias en la que se encuentran.
+"""Módulo en el cual se agregan atributos, tales como el promedio, los estudiantes
+aprobados y las categorias en la que se encuentran.
 
 Este script lee los datos imputados, realiza transformaciones utilizando Polars
 y exporta los resultados procesados a la carpeta correspondiente.

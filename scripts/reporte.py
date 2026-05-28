@@ -19,11 +19,13 @@ def cargar_resumen(ruta: str) -> str:
     with open(ruta, encoding="utf-8") as archivo:
         resumen = archivo.read()
     # Reemplaza cada salto de línea por dos espacios y un salto de línea
-    # De manera de permitir integrar el archivo correctamente al formato markdown del reporte
+    # De manera de permitir integrar el archivo correctamente al formato markdown del
+    # reporte
     return resumen.replace("\n", "  \n")
 
 
-# Identifica los valores imputados para ser utilizados en la sección de observaciones del reporte
+# Identifica los valores imputados para ser utilizados en la sección de observaciones
+# del reporte
 def seccion_observaciones_imputados(df: pl.DataFrame) -> str:
 
     # Se filtra solo las entradas que originalmente contenian un dato faltante
@@ -38,9 +40,11 @@ def seccion_observaciones_imputados(df: pl.DataFrame) -> str:
         ]
 
     """
-     Como los valores nulos de notas y asistencia fueron reemplazados por su mediana y media respectivamente,
-     se recalculan estos valores para compararlos con los valores de la columna nota1,nota2,nota3 y asistencia,
-     de esta manera se obtiene que valor originalmente era nulo y fue reemplazado posteriormente.
+     Como los valores nulos de notas y asistencia fueron reemplazados por su mediana y
+     media respectivamente,se recalculan estos valores para compararlos con los 
+     valores de la columna nota1,nota2,nota3 y asistencia,
+     de esta manera se obtiene que valor originalmente era nulo y 
+     fue reemplazado posteriormente.
     """
 
     mediana_n1 = df["nota1"].median()
@@ -48,7 +52,8 @@ def seccion_observaciones_imputados(df: pl.DataFrame) -> str:
     mediana_n3 = df["nota3"].median()
     media_asistencia = round(df["asistencia"].mean())
 
-    # Valores de referencia para saber si una entrada contenia un nulo originalmente o no
+    # Valores de referencia para saber si una entrada contenia un nulo
+    # originalmente o no
     referencias = {
         "nota1": mediana_n1,
         "nota2": mediana_n2,
@@ -63,7 +68,8 @@ def seccion_observaciones_imputados(df: pl.DataFrame) -> str:
     for fila in imputados.iter_rows(named=True):
         nombre = fila["nombre"]
         for col, valor_referencia in referencias.items():
-            # Si el valor es igual al valor de referencia, significa que ese campo fue el que se imputó.
+            # Si el valor es igual al valor de referencia,
+            # significa que ese campo fue el que se imputó.
             if fila[col] == valor_referencia:
                 lineas_seccion_imputados.append(f"| {nombre} | {col} | {fila[col]} |")
 

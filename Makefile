@@ -35,7 +35,7 @@ all: lint $(REPORTE_FINAL)
 	@echo "=================================================================="
 
 # ==============================================================================
-# PASOS ENCADENADOS DEL PIPELINE (Grafo Acíclico Dirigido)
+# PASOS ENCADENADOS DEL PIPELINE
 # ==============================================================================
 
 # Script 1: Validación - Regla Agrupada para múltiples salidas atómicas
